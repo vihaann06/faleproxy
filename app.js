@@ -41,7 +41,12 @@ app.post('/fetch', async (req, res) => {
         // Only process if it's a text node
         if (content && $(el).children().length === 0) {
           // Replace Yale with Fale in text content only
-          content = content.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale').replace(/YALE/g, 'FALE');
+          content = content.replace(/Yale/gi, (match) => {
+            if (match === 'YALE') return 'FALE';
+            if (match === 'Yale') return 'Fale';
+            if (match === 'yale') return 'fale';
+            return 'Fale';
+          });
           $(el).html(content);
         }
       }
@@ -53,14 +58,25 @@ app.post('/fetch', async (req, res) => {
     }).each(function() {
       // Replace text content but not in URLs or attributes
       const text = $(this).text();
-      const newText = text.replace(/Yale/g, 'Fale').replace(/yale/g, 'fale').replace(/YALE/g, 'FALE');
+      const newText = text.replace(/Yale/gi, (match) => {
+        if (match === 'YALE') return 'FALE';
+        if (match === 'Yale') return 'Fale';
+        if (match === 'yale') return 'fale';
+        return 'Fale';
+      });
       if (text !== newText) {
         $(this).replaceWith(newText);
       }
     });
     
     // Process title separately
-    const title = $('title').text().replace(/Yale/g, 'Fale').replace(/yale/g, 'fale').replace(/YALE/g, 'FALE');
+    const titleText = $('title').text();
+    const title = titleText.replace(/Yale/gi, (match) => {
+      if (match === 'YALE') return 'FALE';
+      if (match === 'Yale') return 'Fale';
+      if (match === 'yale') return 'fale';
+      return 'Fale';
+    });
     $('title').text(title);
     
     return res.json({ 
@@ -78,6 +94,11 @@ app.post('/fetch', async (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Faleproxy server running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  // Only start the server if this file is run directly (e.g., `node app.js`)
+  app.listen(PORT, () => {
+    console.log(`Faleproxy server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
